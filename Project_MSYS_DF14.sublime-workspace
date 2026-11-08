@@ -27,17 +27,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "ZIP_7ZIP_INCREMENTALE_{CRIPTA+DECODIFICA_INTERNO}.BAT",
-			"file_size": 27360,
-			"file_write_time": 134386429742061439,
-			"settings":
-			{
-				"buffer_size": 26805,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -135,6 +124,7 @@
 	],
 	"file_history":
 	[
+		"/C/CASA/LINGUAGGI/ACCESS/PROGETTI_MDB/MSYS/MSys_DF14/git_PULL.BAT",
 		"/C/CASA/LINGUAGGI/ACCESS/PROGETTI_MDB/MSYS/MSys_DF14/ZIP_7ZIP_INCREMENTALE_FILE_LOG.TXT",
 		"/C/CASA/LINGUAGGI/ACCESS/PROGETTI_MDB/MSYS/MSys_DF14/README_MSYS_DF00_BASE.md",
 		"/C/CASA/LINGUAGGI/ACCESS/PROGETTI_MDB/MSYS/MSys_DF14/README_CARTELLE_MSYS.md",
@@ -261,12 +251,11 @@
 		"/C/GESTIONI/GESTIONE_LLPP/25_GESTIONE_LLPP/LLPP_ARCHIVI_MDB/IMPEGNI/OBJECT/FORM/LLPP_IMPEGNI_Tb01FrmS01_14_ELENCO_IMPEGNI.MD",
 		"/C/GESTIONI/GESTIONE_LLPP/25_GESTIONE_LLPP/LLPP_ARCHIVI_MDB/IMPEGNI/OBJECT/MODULES/MODELLO_ROUTINE.MD",
 		"/C/GESTIONI/GESTIONE_LLPP/25_GESTIONE_LLPP/LLPP_ARCHIVI_MDB/IMPEGNI/OBJECT/REPORTS/IMPORTA_REPORTS_IMPEGNI.MD",
-		"/C/GESTIONI/GESTIONE_LLPP/25_GESTIONE_LLPP/LLPP_ARCHIVI_MDB/IMPEGNI/OBJECT/FORM/CLASSE_Form_UTILITA_Msys_Frm21_IMPORTA_OGGETTI.md",
-		"/C/GESTIONI/GESTIONE_LLPP/25_GESTIONE_LLPP/LLPP_ARCHIVI_MDB/IMPEGNI/OBJECT/MODULES/IMPORTA_MODULI_IMPEGNI.MD"
+		"/C/GESTIONI/GESTIONE_LLPP/25_GESTIONE_LLPP/LLPP_ARCHIVI_MDB/IMPEGNI/OBJECT/FORM/CLASSE_Form_UTILITA_Msys_Frm21_IMPORTA_OGGETTI.md"
 	],
 	"find":
 	{
-		"height": 32.0
+		"height": 44.8
 	},
 	"find_in_files":
 	{
@@ -281,6 +270,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"DF13",
 			"DF00"
 		],
 		"highlight": true,
@@ -304,38 +294,6 @@
 		{
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "ZIP_7ZIP_INCREMENTALE_{CRIPTA+DECODIFICA_INTERNO}.BAT",
-					"selected": true,
-					"semi_transient": true,
-					"settings":
-					{
-						"buffer_size": 26805,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Batch File/Batch File.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"stack_multiselect": false,
-					"type": "text"
-				}
 			]
 		}
 	],
