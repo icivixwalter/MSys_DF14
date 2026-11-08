@@ -1,0 +1,4 @@
+//ATTENZIONE QUESTE SONO LE CARTELLE ESCLUSE
+//............................................................................
+.\SALVATAGGI_2023_2024
+.\AA_SALVATAGGI

@@ -1,0 +1,13 @@
+AA_SALVATAGGI/
+
+# copie di sicurezza di GitHub (restano solo sul PC)
+AA_BACKUP_GITHUB/
+
+
+# log del bat git (resta solo sul PC)
+git_LOG.txt
+
+# file di blocco di Access/Office (esistono solo mentre il file e' aperto)
+*.ldb
+*.laccdb
+~$*

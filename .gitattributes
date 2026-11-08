@@ -1,0 +1,6 @@
+# file binari: nessuna conversione dei fine riga
+*.mdb   binary
+*.accdb binary
+*.GE614 binary
+*.zip   binary
+*.7z    binary
