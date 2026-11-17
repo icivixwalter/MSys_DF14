@@ -8,8 +8,9 @@ REM  leggendo il contenuto della cartella in cui si trova questo bat:
 REM    1) intestazione di commento (righe //)
 REM    2) cartelle e file di primo livello in UN UNICO elenco alfabetico
 REM       (cartelle nella forma  NOMECARTELLA\ , file con il solo nome)
+REM  La cartella .git e il file .gitignore SONO inclusi: restano solo sul PC
+REM  e negli zip (su GitHub non vanno, ci pensano i bat git_*.BAT).
 REM  Sono escluse:
-REM    - la cartella .git
 REM    - la cartella dei salvataggi  (CARTELLA_SALVATAGGI_S)
 REM    - le cartelle elencate in Zip_N70_ElencoFileESCLUSI.txt  (righe // ignorate, .\ facoltativo)
 REM  Nessuna riga ha spazi finali. Il file precedente viene copiato in
@@ -72,7 +73,6 @@ REM  :AGGIUNGI_CARTELLA "nome"  -> scrive  nome\  se non e' esclusa
 REM ================================================================================================
 :AGGIUNGI_CARTELLA
 SET "D=%~1"
-IF /I "%D%"==".git" EXIT /B 0
 IF /I "%D%"=="%CARTELLA_SALVATAGGI_S%" EXIT /B 0
 SET "ESCLUSA="
 IF EXIST "%LISTA_ESCLUSI_S%" (

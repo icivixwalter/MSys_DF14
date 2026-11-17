@@ -10,6 +10,14 @@ REM
 REM  - se nella cartella del bat esiste gia' il repository: esegue il pull
 REM  - se NON esiste la .git: crea il repository e scarica tutto da GitHub
 REM    (basta copiare questo bat in una cartella vuota e lanciarlo)
+REM
+REM  REGOLA: .git e .gitignore restano SOLO sul PC e negli zip 7-Zip,
+REM          NON vanno MAI su GitHub:
+REM  - le regole indispensabili sono scritte in .git\info\exclude
+REM    (locale, mai su GitHub): .gitignore git_LOG.txt AA_BACKUP_GITHUB/ AA_SALVATAGGI/
+REM  - prima del pull .gitignore viene copiato in %TEMP% e, se il pull lo
+REM    cancella, viene rimesso; se manca del tutto (repository nuovo)
+REM    viene ricreato dal modello
 REM =====================================================================
 set "REPO_URL=https://github.com/icivixwalter/MSys_DF14.git"
 set "BRANCH=main"
@@ -64,8 +72,13 @@ git status -sb
 echo.
 
 echo === PULL: scarico le modifiche da GitHub ===
+call :regole_locali
+del "%TEMP%\gitignore_git_PULL.bak" >nul 2>&1
+if exist ".gitignore" copy /y ".gitignore" "%TEMP%\gitignore_git_PULL.bak" >nul 2>&1
 git pull --no-edit --no-rebase origin %BRANCH%
-if errorlevel 1 (
+set "RC_PULL=%errorlevel%"
+call :ripristina_gitignore
+if not "%RC_PULL%"=="0" (
     echo.
     echo *** ERRORE PULL: leggere i messaggi sopra ***
     echo Se ci sono modifiche locali non salvate eseguire prima git_COMMIT.BAT
@@ -90,6 +103,9 @@ echo === INIT: creo il repository ===
 git init
 if errorlevel 1 (echo *** ERRORE INIT *** & pause & exit /b 1)
 git remote add origin "%REPO_URL%"
+call :regole_locali
+del "%TEMP%\gitignore_git_PULL.bak" >nul 2>&1
+if exist ".gitignore" copy /y ".gitignore" "%TEMP%\gitignore_git_PULL.bak" >nul 2>&1
 
 echo.
 echo === FETCH: scarico da GitHub ===
@@ -128,6 +144,7 @@ git checkout -f -B %BRANCH% --track origin/%BRANCH%
 if errorlevel 1 (echo *** ERRORE CHECKOUT: leggere i messaggi sopra *** & pause & exit /b 1)
 
 :FINE
+call :ripristina_gitignore
 echo.
 echo === ULTIMI COMMIT ===
 git log --oneline -5
@@ -135,4 +152,48 @@ echo.
 echo === OPERAZIONE COMPLETATA ===
 pause
 endlocal
+exit /b 0
+
+REM =====================================================================
+REM  :regole_locali  -> regole in .git\info\exclude (mai su GitHub)
+REM =====================================================================
+:regole_locali
+if not exist ".git\info\" mkdir ".git\info"
+for %%R in (".gitignore" "git_LOG.txt" "AA_BACKUP_GITHUB/" "AA_SALVATAGGI/") do call :regola "%%~R"
+exit /b 0
+:regola
+findstr /x /l /c:"%~1" ".git\info\exclude" >nul 2>&1
+if not errorlevel 1 exit /b 0
+>> ".git\info\exclude" echo.
+>> ".git\info\exclude" echo(%~1
+exit /b 0
+
+REM =====================================================================
+REM  :ripristina_gitignore  -> rimette .gitignore se il pull l'ha cancellato,
+REM                            altrimenti lo ricrea dal modello
+REM =====================================================================
+:ripristina_gitignore
+if exist ".gitignore" exit /b 0
+if exist "%TEMP%\gitignore_git_PULL.bak" (
+    copy /y "%TEMP%\gitignore_git_PULL.bak" ".gitignore" >nul
+    echo .gitignore cancellato dal pull: rimesso dalla copia
+    exit /b 0
+)
+echo .gitignore mancante: lo ricreo dal modello
+> ".gitignore" echo # questo file resta SOLO sul PC e negli zip 7-Zip: NON va su GitHub
+>> ".gitignore" echo .gitignore
+>> ".gitignore" echo.
+>> ".gitignore" echo # salvataggi 7-Zip - restano solo sul PC
+>> ".gitignore" echo AA_SALVATAGGI/
+>> ".gitignore" echo.
+>> ".gitignore" echo # copie di sicurezza di GitHub - restano solo sul PC
+>> ".gitignore" echo AA_BACKUP_GITHUB/
+>> ".gitignore" echo.
+>> ".gitignore" echo # log del bat git - resta solo sul PC
+>> ".gitignore" echo git_LOG.txt
+>> ".gitignore" echo.
+>> ".gitignore" echo # file di blocco di Access/Office - esistono solo mentre il file e' aperto
+>> ".gitignore" echo *.ldb
+>> ".gitignore" echo *.laccdb
+>> ".gitignore" echo ~$*
 exit /b 0

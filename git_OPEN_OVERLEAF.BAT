@@ -12,7 +12,7 @@ rem start msedge https://www.overleaf.com/project/678766715c38d59052417047
 
 rem start msedge --profile-directory="Personale" http://intranet/	
 
-start msedge --profile-directory="Personale" https://www.overleaf.com/project/6755e159c2770881d5686966	
+start msedge --profile-directory="Personale" https://www.overleaf.com/project/6755e159c2770881d5686966
 
 rem start msedge --profile-directory="Profilo 1" http://intranet/
 
@@ -26,9 +26,9 @@ rem start msedge --profile-directory="Profilo 1" http://intranet/
 @REM sospensione per 1 secondo con crononometro 
 @REM ---->	timeout /t 2 /nobreak > NUL
 @REM ---->
-ECHO
-ECHO
+ECHO.
+ECHO.
 ECHO  pausa di 2 secondi per consentire il commit
-ECHO
+ECHO.
 @TIMEOUT /T 2 /NOBREAK
 

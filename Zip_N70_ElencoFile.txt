@@ -1,6 +1,7 @@
 //ATTENZIONE AGLI SPAZI DI FINE RIGA non ci devono essere altrimenti non salva
 //questo è il secondo esempio con path e file liberi senza .\ e sembra che funziona
 //............................................................................//
+.git\
 .gitattributes
 .gitignore
 AA__________________________________________________________________________AA.txt
@@ -19,6 +20,7 @@ git_STATUS+PULL+ADD+COMMIT+PUSH.BAT
 MSYS_N02________________________________________________________________MSYS.txt
 Project_MSYS_DF14.sublime-project
 Project_MSYS_DF14.sublime-workspace
+README.md
 README_CARTELLE_MSYS.md
 README_CLASSI_PROGETTO.MD
 README_MSYS_DF00_BASE.md

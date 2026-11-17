@@ -9,14 +9,36 @@ REM  REPOSITORY: la cartella di questo bat
 REM              (c:\CASA\LINGUAGGI\ACCESS\PROGETTI_MDB\MSYS\MSys_DF14\)
 REM              il bat si posiziona da solo: basta il doppio clic.
 REM  LOG       : git_LOG.txt  (aggiunto in coda ad ogni esecuzione,
-REM              resta solo sul PC: e' escluso nel .gitignore)
+REM              resta solo sul PC: e' escluso da git)
 REM ====================================================================
+REM
+REM  REGOLA: .git e .gitignore restano SOLO sul PC e negli zip 7-Zip,
+REM          NON devono MAI andare su GitHub (vedi PASSO 0b).
+REM
+REM  NOTA TECNICA: il bat si esegue da una sua COPIA in %TEMP%, perche'
+REM  il PULL puo' scaricare una versione nuova di questo stesso bat e
+REM  cmd non puo' continuare a leggere un bat che viene sostituito.
+REM  Il codice di uscita (0 = OK, 1 = errore) arriva comunque a chi lo
+REM  ha chiamato (es. DOS_ATTIVA_git_..._PER_OGNI_CARTELLA.bat).
 REM
 REM  FLUSSO DEI PASSI
 REM  --------------------------------------------------------------------
 REM  PASSO 0 - CONTROLLO REPOSITORY      comando: git rev-parse --show-toplevel
 REM            Verifica che la cartella sia un repository git.
 REM            Se NON lo e': ERRORE e il bat si ferma.
+REM
+REM  PASSO 0b - PROTEZIONE .gitignore     comando: git rm --cached .gitignore
+REM            - scrive in .git\info\exclude (regole SOLO locali, mai su
+REM              GitHub, salvate negli zip insieme a .git) le righe:
+REM                .gitignore  git_LOG.txt  AA_BACKUP_GITHUB/  AA_SALVATAGGI/
+REM            - se .gitignore manca lo ricrea dal modello (:crea_gitignore)
+REM            - se .gitignore e' ancora seguito da git lo toglie da git:
+REM              il FILE resta sul PC, su GitHub viene cancellato col
+REM              prossimo commit+push.
+REM            - controlla che .gitignore risulti escluso, altrimenti STOP.
+REM            Prima del PULL il .gitignore viene copiato in %TEMP% e, se
+REM            il pull lo cancella (succede sull'altro PC la prima volta),
+REM            viene rimesso al suo posto.
 REM
 REM  PASSO 1 - STATUS                     comando: git status -s
 REM            Mostra i file modificati, nuovi o cancellati.
@@ -87,11 +109,22 @@ REM  :esegui "TITOLO" comando  -- esegue il comando, lo mostra a video,
 REM                               lo scrive nel log con il suo esito
 REM  :scrivi "testo"           -- scrive una riga a video e nel log
 REM ====================================================================
-set "LOG=%~dp0git_LOG.txt"
+
+REM --- esecuzione da una copia in %TEMP% (vedi NOTA TECNICA) ---
+if /i not "%~1"=="__COPIA_TEMP__" (
+    copy /y "%~f0" "%TEMP%\git_STATUS_PULL_esecuzione.bat" >nul
+    call "%TEMP%\git_STATUS_PULL_esecuzione.bat" __COPIA_TEMP__ "%~dp0"
+    exit /b
+)
+set "PROGETTO=%~2"
+
+set "LOG=%PROGETTO%git_LOG.txt"
 set "TMPOUT=%TEMP%\git_bat_output.tmp"
 set "ESITO=OK"
 
-cd /d "%~dp0"
+cd /d "%PROGETTO%"
+for %%I in ("%CD%") do set "NOME_CARTELLA=%%~nxI"
+set "GI_BAK=%TEMP%\gitignore_%NOME_CARTELLA%.bak"
 
 REM data nel formato AAAA_MM_GG_Hhh_Mmm_Sss (senza WMIC)
 set "today="
@@ -106,6 +139,7 @@ call :scrivi "### REPOSITORY: %CD%"
 call :scrivi "################################################################"
 
 call :esegui "0) CONTROLLO REPOSITORY" git rev-parse --show-toplevel || goto :errore
+call :proteggi_gitignore || goto :errore
 call :esegui "1) STATUS" git status -s
 
 REM protezione: le copie di sicurezza NON devono mai finire nei commit
@@ -158,7 +192,12 @@ git fetch origin >nul 2>&1
 goto :stato_finale
 
 :pull_normale
-call :esegui "3) PULL da GitHub" git pull --no-edit || goto :errore
+REM il pull puo' cancellare .gitignore (se su GitHub e' stato tolto): copia prima, ripristino dopo
+copy /y ".gitignore" "%GI_BAK%" >nul 2>&1
+call :esegui "3) PULL da GitHub" git pull --no-edit
+set "RC_PULL=%errorlevel%"
+call :ripristina_gitignore
+if not "%RC_PULL%"=="0" goto :errore
 call :esegui "4) PUSH su GitHub" git push || goto :errore
 
 :stato_finale
@@ -212,6 +251,72 @@ if "%RC%"=="0" call :scrivi "    ESITO: OK"
 if not "%RC%"=="0" call :scrivi "    ESITO: ERRORE - codice %RC%"
 del "%TMPOUT%" >nul 2>&1
 exit /b %RC%
+
+REM ------------------------------------------------------------
+REM  :proteggi_gitignore  -> PASSO 0b: .gitignore solo sul PC e negli zip
+REM ------------------------------------------------------------
+:proteggi_gitignore
+call :scrivi ""
+call :scrivi "=== 0b) PROTEZIONE .gitignore - resta sul PC e negli zip, MAI su GitHub   [%time:~0,8%]"
+if not exist ".git\info\" mkdir ".git\info"
+for %%R in (".gitignore" "git_LOG.txt" "AA_BACKUP_GITHUB/" "AA_SALVATAGGI/") do call :regola_locale "%%~R"
+if not exist ".gitignore" call :crea_gitignore
+git ls-files --error-unmatch .gitignore >nul 2>&1
+if errorlevel 1 goto :gi_non_seguito
+call :esegui "0b) tolgo .gitignore da git - il FILE resta sul PC" git rm --cached -q .gitignore || exit /b 1
+:gi_non_seguito
+git check-ignore -q .gitignore
+if errorlevel 1 (call :scrivi "*** ERRORE: .gitignore NON risulta escluso da git" & exit /b 1)
+call :scrivi "    .gitignore escluso da git: OK"
+exit /b 0
+
+REM ------------------------------------------------------------
+REM  :regola_locale "riga"  -> aggiunge la riga a .git\info\exclude se manca
+REM  (.git\info\exclude funziona come .gitignore ma non va mai su GitHub)
+REM ------------------------------------------------------------
+:regola_locale
+findstr /x /l /c:"%~1" ".git\info\exclude" >nul 2>&1
+if not errorlevel 1 exit /b 0
+>> ".git\info\exclude" echo.
+>> ".git\info\exclude" echo(%~1
+call :scrivi "    .git\info\exclude: aggiunta la regola %~1"
+exit /b 0
+
+REM ------------------------------------------------------------
+REM  :ripristina_gitignore  -> dopo il PULL rimette .gitignore se e' sparito
+REM ------------------------------------------------------------
+:ripristina_gitignore
+if exist ".gitignore" exit /b 0
+if exist "%GI_BAK%" goto :gi_dalla_copia
+call :crea_gitignore
+exit /b 0
+:gi_dalla_copia
+copy /y "%GI_BAK%" ".gitignore" >nul
+call :scrivi "    .gitignore cancellato dal pull: rimesso dalla copia in %TEMP%"
+exit /b 0
+
+REM ------------------------------------------------------------
+REM  :crea_gitignore  -> ricrea .gitignore dal MODELLO (MSys_DF14)
+REM ------------------------------------------------------------
+:crea_gitignore
+call :scrivi "    .gitignore mancante: lo ricreo dal modello"
+> ".gitignore" echo # questo file resta SOLO sul PC e negli zip 7-Zip: NON va su GitHub
+>> ".gitignore" echo .gitignore
+>> ".gitignore" echo.
+>> ".gitignore" echo # salvataggi 7-Zip - restano solo sul PC
+>> ".gitignore" echo AA_SALVATAGGI/
+>> ".gitignore" echo.
+>> ".gitignore" echo # copie di sicurezza di GitHub - restano solo sul PC
+>> ".gitignore" echo AA_BACKUP_GITHUB/
+>> ".gitignore" echo.
+>> ".gitignore" echo # log del bat git - resta solo sul PC
+>> ".gitignore" echo git_LOG.txt
+>> ".gitignore" echo.
+>> ".gitignore" echo # file di blocco di Access/Office - esistono solo mentre il file e' aperto
+>> ".gitignore" echo *.ldb
+>> ".gitignore" echo *.laccdb
+>> ".gitignore" echo ~$*
+exit /b 0
 
 REM ------------------------------------------------------------
 REM  :scrivi "testo"  -> scrive a video e nel log

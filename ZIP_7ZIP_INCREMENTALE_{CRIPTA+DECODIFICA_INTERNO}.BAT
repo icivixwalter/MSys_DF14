@@ -43,6 +43,8 @@
 @REM  06.02  CALL Zip_N70_DECODIFICA.bat CON LOG ERRORLEVEL
 @REM
 @REM  07.00  SALVATAGGIO 7ZIP
+@REM  07.00b RIGENERA LA LISTA FILE (Zip_N70_CREA_ElencoFile.bat): la lista
+@REM         segue sempre il contenuto della cartella, compresi .git e .gitignore
 @REM  07.01  POSIZIONAMENTO IN PATH_PART_S E CONTROLLO LISTA FILE
 @REM  07.02  COMANDO 7ZIP u -tzip -r CON GESTIONE ERRORLEVEL (0 OK, 1 WARNING NOTO, >=2 ERRORE)
 @REM  07.03  CONTROLLO CONTENUTO CARTELLA DESTINAZIONE
@@ -330,6 +332,23 @@
 @CALL :LOG "07.00 - SALVATAGGIO 7ZIP"
 
 @REM ================================================================================================
+@REM  07.00b RIGENERA LA LISTA FILE
+@REM         Zip_N70_CREA_ElencoFile.bat riscrive Zip_N70_ElencoFile.txt con le
+@REM         cartelle e i file presenti ORA (compresi .git\ e .gitignore, esclusi
+@REM         AA_SALVATAGGI e le cartelle di Zip_N70_ElencoFileESCLUSI.txt).
+@REM         Input da NUL: la sua PAUSE finale non ferma il salvataggio.
+@REM         Se il bat manca si usa la lista esistente.
+@REM ================================================================================================
+@CD /D "%PATH_PART_S%"
+@IF EXIST "Zip_N70_CREA_ElencoFile.bat" (
+    @CALL :LOG "07.00b - Rigenero la lista file con Zip_N70_CREA_ElencoFile.bat"
+    @CALL Zip_N70_CREA_ElencoFile.bat < NUL
+) ELSE (
+    @CALL :LOG "07.00b - Zip_N70_CREA_ElencoFile.bat non trovato: uso la lista esistente"
+)
+@CALL :LOG "07.00b - Lista file pronta - ERRORLEVEL=%ERRORLEVEL%"
+
+@REM ================================================================================================
 @REM  07.01  POSIZIONAMENTO IN PATH_PART_S E CONTROLLO LISTA FILE
 @REM ================================================================================================
 @CD /D "%PATH_PART_S%"
@@ -451,7 +470,7 @@
 @SET "MSG=%~1"
 @FOR /F "tokens=1-6 delims=/:., " %%a IN ("%DATE% %TIME%") DO @SET "TS=%%a/%%b/%%c %%d:%%e:%%f"
 @ECHO [%TS%] %MSG%
-@ECHO [%TS%] %MSG%>>"%ZIP_7ZIP_INCREMENTALE_FILE_LOG%"
+@>>"%ZIP_7ZIP_INCREMENTALE_FILE_LOG%" ECHO [%TS%] %MSG%
 @EXIT /B 0
 
 @REM ================================================================================================

@@ -49,9 +49,12 @@ REM     non fanno parte della "storia"; senza questa regola tornando a un
 REM     salvataggio vecchio potrebbero sparire). Se differiscono dal
 REM     salvataggio risultano "modificati" e il prossimo
 REM     git_STATUS+PULL+ADD+COMMIT+PUSH.BAT li salva.
-REM   - .gitignore: dopo il ripristino controlla che contenga
-REM     AA_BACKUP_GITHUB/, AA_SALVATAGGI/ e git_LOG.txt e se mancano
-REM     le aggiunge (un salvataggio vecchio potrebbe non averle).
+REM   - .gitignore: resta quello ATTUALE (resta SOLO sul PC e negli zip,
+REM     NON va su GitHub). Un salvataggio vecchio puo' contenerlo: dopo il
+REM     reset viene rimesso quello attuale e tolto da git (git rm --cached);
+REM     su GitHub sparisce col prossimo git_STATUS+PULL+ADD+COMMIT+PUSH.BAT.
+REM     Controlla anche che contenga .gitignore, AA_BACKUP_GITHUB/,
+REM     AA_SALVATAGGI/ e git_LOG.txt e se mancano le aggiunge.
 REM
 REM  PROTEZIONI, IN QUESTO ORDINE:
 REM   0) cartella = repository git; AA_BACKUP_GITHUB esistente ed esclusa
@@ -238,17 +241,23 @@ if defined APERTI (
 set "STRUMENTI=%TEMP%\git_strumenti_%NOME_REPO%_%TS%"
 mkdir "%STRUMENTI%" >nul 2>&1
 copy /y "git_*.BAT" "%STRUMENTI%\" >nul
+if exist ".gitignore" copy /y ".gitignore" "%STRUMENTI%\gitignore.attuale" >nul
 git fetch --prune origin >nul 2>&1
 git reset --hard %SHA_BACKUP%
 if errorlevel 1 (
     copy /y "%STRUMENTI%\*.BAT" . >nul
+    if exist "%STRUMENTI%\gitignore.attuale" copy /y "%STRUMENTI%\gitignore.attuale" ".gitignore" >nul
     echo *** ERRORE: la cartella del PC NON e' stata riportata al salvataggio
     echo ***   ^(file aperti?^). GitHub e' gia' ripristinato: chiudi i file e
     echo ***   RILANCIA questo bat scegliendo lo stesso salvataggio.
     pause & exit /b 1
 )
 copy /y "%STRUMENTI%\*.BAT" . >nul
+REM .gitignore: rimetto quello attuale e lo tolgo da git (resta solo sul PC e negli zip)
+if exist "%STRUMENTI%\gitignore.attuale" copy /y "%STRUMENTI%\gitignore.attuale" ".gitignore" >nul
+git rm --cached -q --ignore-unmatch .gitignore >nul 2>&1
 rd /s /q "%STRUMENTI%" >nul 2>&1
+call :ignora ".gitignore"
 call :ignora "AA_SALVATAGGI/"
 call :ignora "AA_BACKUP_GITHUB/"
 call :ignora "git_LOG.txt"
